@@ -1,41 +1,28 @@
 import requests
 
-def fetch_aqi_data(lat, lon):
-    try:
-        url = "https://api.openaq.org/v2/latest"
-        params = {
-            "coordinates": f"{lat},{lon}",
-            "radius": 5000,
-            "limit": 1
-        }
+WAQI_TOKEN = "3ef0f12a16f414f8abfbfc35151fb4b923ddbd85"
 
-        response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
+def fetch_aqi_data(city):
+    url = f"https://api.waqi.info/feed/{city}/"
+    params = {"token": WAQI_TOKEN}
 
-        data = response.json()
-        pollutants = {}
+    res = requests.get(url, params=params, timeout=10)
+    data = res.json()
 
-        results = data.get("results", [])
-        if not results:
-            return {}
+    if data.get("status") != "ok":
+        return None
 
-        measurements = results[0].get("measurements", [])
+    d = data["data"]
 
-        for m in measurements:
-            param = m.get("parameter")
-            value = m.get("value")
-            if param and value is not None:
-                pollutants[param] = value
+    iaqi = d.get("iaqi", {})
 
-        return {
-            "aqi": pollutants.get("pm25", "N/A"),
-            "pm25": pollutants.get("pm25", "N/A"),
-            "pm10": pollutants.get("pm10", "N/A"),
-            "no2": pollutants.get("no2", "N/A"),
-            "so2": pollutants.get("so2", "N/A"),
-            "co": pollutants.get("co", "N/A")
-        }
-
-    except Exception as e:
-        print("AQI fetch error:", e)
-        return {}
+    return {
+        "aqi": d.get("aqi", "N/A"),
+        "pm25": iaqi.get("pm25", {}).get("v", "N/A"),
+        "pm10": iaqi.get("pm10", {}).get("v", "N/A"),
+        "no2": iaqi.get("no2", {}).get("v", "N/A"),
+        "so2": iaqi.get("so2", {}).get("v", "N/A"),
+        "co": iaqi.get("co", {}).get("v", "N/A"),
+        "time": d.get("time", {}).get("s", "N/A"),
+        "source": "WAQI"
+    }

@@ -49,7 +49,7 @@ def get_aqi_by_city():
     if not city_info:
         return jsonify({"error": "City not found"}), 404
 
-    aqi_data = fetch_aqi_data(city_info["lat"], city_info["lon"])
+    aqi_data = fetch_aqi_data(city_info["city"])
     if not aqi_data:
         aqi_data = {
         "aqi": "N/A",
@@ -61,8 +61,7 @@ def get_aqi_by_city():
     return jsonify({
         "city": city_info["city"],
         "state": state,
-        "lat": city_info["lat"],
-        "lon": city_info["lon"],
+        #"lon": city_info["lon"],
         "source": "OpenAQ",
         **aqi_data
     })
