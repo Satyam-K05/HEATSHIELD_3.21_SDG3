@@ -1,83 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>AQI Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UrbanAir Insight</title>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-  <style>
-    body { font-family: Arial; background: #f4f6f8; margin: 0; }
-    header { background: #1e88e5; color: white; padding: 15px; text-align: center; }
-    #main-content { padding: 20px; }
-    .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-    #aqi-map { height: 300px; border-radius: 8px; }
-    .risk { font-weight: bold; padding: 6px 10px; border-radius: 5px; }
-    .High { background: #e53935; color: white; }
-    .Moderate { background: #fbc02d; }
-    .Low { background: #43a047; color: white; }
-    #loading-indicator { display: none; font-weight: bold; }
-    #error-message { color: red; }
-  </style>
+<link rel="stylesheet" href=""styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
+<div class="dashboard-container">
 
-<header>
-  <h1>Air Quality & Health Risk Dashboard</h1>
+<header class="header">
+<div class="logo">
+<div class="logo-icon">🌍</div>
+<h1>UrbanAir <span class="highlight">Insight</span></h1>
+</div>
+
+<button id="refreshBtn" class="refresh-btn">REFRESH</button>
 </header>
 
-<div id="main-content">
+<!-- CITY SELECT -->
+<div class="content-wrapper">
 
-  <!-- Search -->
-  <div class="card">
-    <input id="city-search" type="text" placeholder="Enter city name" />
-    <button id="search-button">Search</button>
-  </div>
+<aside class="sidebar">
+<h3 class="section-title">SELECT CITY</h3>
+<div class="city-list">
 
-  <!-- Loading & Error -->
-  <div id="loading-indicator">Loading data...</div>
-  <div id="error-message"></div>
+<div class="city-item" data-city="Delhi">Delhi</div>
+<div class="city-item" data-city="Mumbai">Mumbai</div>
+<div class="city-item" data-city="Bengaluru">Bengaluru</div>
+<div class="city-item" data-city="Lucknow">Lucknow</div>
+<div class="city-item" data-city="Indore">Indore</div>
+<div class="city-item" data-city="Bhopal">Bhopal</div>
+<div class="city-item" data-city="Pune">Pune</div>
 
-  <!-- City Info -->
-  <div class="card">
-    <h2 id="city-name">City</h2>
-    <p>AQI: <span id="aqi-value">--</span></p>
-    <span id="risk-level" class="risk">--</span>
-    <p id="aqi-description"></p>
-  </div>
 
-  <!-- Pollution Values -->
-  <div class="card">
-    <p>PM2.5: <span id="pm25-value"></span></p>
-    <p>PM10: <span id="pm10-value"></span></p>
-    <p>NO₂: <span id="no2-value"></span></p>
-    <p>SO₂: <span id="so2-value"></span></p>
-    <p>CO: <span id="co-value"></span></p>
-  </div>
+</div>
+</aside>
 
-  <!-- Chart -->
-  <div class="card">
-    <canvas id="pollution-chart"></canvas>
-  </div>
+<!-- MAP -->
+<main class="main-content">
+<div class="map-container">
+<h3 class="section-title">AIR QUALITY MAP</h3>
+<img src="india-map-base.svg" class="india-map">
+</div>
+</main>
 
-  <!-- Map -->
-  <div class="card">
-    <div id="aqi-map"></div>
-  </div>
+<!-- DETAILS -->
+<aside class="details-panel">
+
+<div class="details-header">
+<h2 id="cityName">Delhi</h2>
+<div id="cityAqiLarge" class="city-aqi-large">--</div>
+</div>
+
+<div class="weather-info">
+<div>PM2.5 <span id="pm25">--</span></div>
+<div>PM10 <span id="pm10Val">--</span></div>
+<div>NO2 <span id="no2Val">--</span></div>
+<div>SO2 <span id="so2Val">--</span></div>
+<div>CO <span id="coVal">--</span></div>
+</div>
+
+</aside>
+</div>
+
+<!-- CHART -->
+<div class="chart-card">
+<h3>AQI TREND</h3>
+<canvas id="aqiTrendChart"></canvas>
+</div>
+
+<footer class="footer">
+<p>Live AQI powered by WAQI Backend</p>
+</footer>
 
 </div>
 
-<!-- Your JS file -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+<script src="script.js"></script>
 </body>
 </html>
-
