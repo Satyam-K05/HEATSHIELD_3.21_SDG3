@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>India AQI Heatmap & Health Risk</title>
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f8;
+    }
+    header {
+      background: #1e293b;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+    .container {
+      padding: 15px;
+    }
+    #map {
+      height: 400px;
+      margin-top: 15px;
+      border-radius: 10px;
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>🌍 India AQI & Health Risk Dashboard</h2>
+</header>
+
+<div class="container">
+
+  <!-- City AQI -->
+  <div class="card">
+    <h3>Check City AQI</h3>
+    <input id="cityInput" placeholder="Enter city (e.g. Bhopal)" />
+    <button onclick="getCityAQI()">Check</button>
+    <p id="cityResult"></p>
+  </div>
+
+  <!-- Map -->
+  <div class="card">
+    <h3>India AQI Heatmap</h3>
+    <div id="map"></div>
+  </div>
+
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  // 🔥 CHANGE THIS ONLY WHEN DEPLOYING
+  const BASE_URL = "http://127.0.0.1:5000";
+
+  // =========================
+  // CITY AQI FETCH
+  // =========================
+  async function getCityAQI() {
+    const city = document.getElementById("cityInput").value;
+    if (!city) return;
+
+    const res = await fetch(${BASE_URL}/aqi/${city});
+    const data = await res.json();
+
+    document.getElementById("cityResult").innerHTML = 
+      <b>City:</b> ${data.city}<br>
+      <b>AQI:</b> ${data.aqi}<br>
+      <b>Risk:</b> ${data.risk}<br>
+      <b>Diseases:</b> ${data.respiratory_diseases.join(", ")}
+    ;
+  }
+
+  // =========================
+  // MAP INIT
+  // =========================
+  const map = L.map("map").setView([22.97, 78.65], 5);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
+
+  // =========================
+  // HEATMAP DATA
+  // =========================
+  async function loadHeatmap() {
+    const res = await fetch(${BASE_URL}/heatmap/india);
+    const data = await res.json();
+
+    data.points.forEach(p => {
+      let color = "green";
+      if (p.aqi > 200) color = "red";
+      else if (p.aqi > 100) color = "orange";
+
+      L.circleMarker([p.lat, p.lon], {
+        radius: 10,
+        color: color,
+        fillColor: color,
+        fillOpacity: 0.7
+      })
+      .addTo(map)
+      .bindPopup(
+        <b>${p.city}</b><br>AQI: ${p.aqi}<br>${p.risk}
+      );
+    });
+  }
+
+  loadHeatmap();
+</script>
+
+</body>
+</html>
