@@ -2,136 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>India AQI Heatmap & Health Risk</title>
+  <title>AQI Dashboard</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f6f8;
-    }
-    header {
-      background: #1e293b;
-      color: white;
-      padding: 15px;
-      text-align: center;
-    }
-    .container {
-      padding: 15px;
-    }
-    #map {
-      height: 400px;
-      margin-top: 15px;
-      border-radius: 10px;
-    }
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    input, button {
-      padding: 10px;
-      font-size: 16px;
-    }
-    button {
-      cursor: pointer;
-    }
+    body { font-family: Arial; background: #f4f6f8; margin: 0; }
+    header { background: #1e88e5; color: white; padding: 15px; text-align: center; }
+    #main-content { padding: 20px; }
+    .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    #aqi-map { height: 300px; border-radius: 8px; }
+    .risk { font-weight: bold; padding: 6px 10px; border-radius: 5px; }
+    .High { background: #e53935; color: white; }
+    .Moderate { background: #fbc02d; }
+    .Low { background: #43a047; color: white; }
+    #loading-indicator { display: none; font-weight: bold; }
+    #error-message { color: red; }
   </style>
 </head>
+
 <body>
 
 <header>
-  <h2>🌍 India AQI & Health Risk Dashboard</h2>
+  <h1>Air Quality & Health Risk Dashboard</h1>
 </header>
 
-<div class="container">
+<div id="main-content">
 
-  <!-- City AQI -->
+  <!-- Search -->
   <div class="card">
-    <h3>Check City AQI</h3>
-    <input id="cityInput" placeholder="Enter city (e.g. Bhopal)" />
-    <button onclick="getCityAQI()">Check</button>
-    <p id="cityResult"></p>
+    <input id="city-search" type="text" placeholder="Enter city name" />
+    <button id="search-button">Search</button>
+  </div>
+
+  <!-- Loading & Error -->
+  <div id="loading-indicator">Loading data...</div>
+  <div id="error-message"></div>
+
+  <!-- City Info -->
+  <div class="card">
+    <h2 id="city-name">City</h2>
+    <p>AQI: <span id="aqi-value">--</span></p>
+    <span id="risk-level" class="risk">--</span>
+    <p id="aqi-description"></p>
+  </div>
+
+  <!-- Pollution Values -->
+  <div class="card">
+    <p>PM2.5: <span id="pm25-value"></span></p>
+    <p>PM10: <span id="pm10-value"></span></p>
+    <p>NO₂: <span id="no2-value"></span></p>
+    <p>SO₂: <span id="so2-value"></span></p>
+    <p>CO: <span id="co-value"></span></p>
+  </div>
+
+  <!-- Chart -->
+  <div class="card">
+    <canvas id="pollution-chart"></canvas>
   </div>
 
   <!-- Map -->
   <div class="card">
-    <h3>India AQI Heatmap</h3>
-    <div id="map"></div>
+    <div id="aqi-map"></div>
   </div>
 
 </div>
 
-<!-- Leaflet JS -->
+<!-- Your JS file -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script>
-  // 🔥 CHANGE THIS ONLY WHEN DEPLOYING
-  const BASE_URL = "http://127.0.0.1:5000";
-
-  // =========================
-  // CITY AQI FETCH
-  // =========================
-  async function getCityAQI() {
-    const city = document.getElementById("cityInput").value;
-    if (!city) return;
-
-    const res = await fetch(${BASE_URL}/aqi/${city});
-    const data = await res.json();
-
-    document.getElementById("cityResult").innerHTML = 
-      <b>City:</b> ${data.city}<br>
-      <b>AQI:</b> ${data.aqi}<br>
-      <b>Risk:</b> ${data.risk}<br>
-      <b>Diseases:</b> ${data.respiratory_diseases.join(", ")}
-    ;
-  }
-
-  // =========================
-  // MAP INIT
-  // =========================
-  const map = L.map("map").setView([22.97, 78.65], 5);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap"
-  }).addTo(map);
-
-  // =========================
-  // HEATMAP DATA
-  // =========================
-  async function loadHeatmap() {
-    const res = await fetch(${BASE_URL}/heatmap/india);
-    const data = await res.json();
-
-    data.points.forEach(p => {
-      let color = "green";
-      if (p.aqi > 200) color = "red";
-      else if (p.aqi > 100) color = "orange";
-
-      L.circleMarker([p.lat, p.lon], {
-        radius: 10,
-        color: color,
-        fillColor: color,
-        fillOpacity: 0.7
-      })
-      .addTo(map)
-      .bindPopup(
-        <b>${p.city}</b><br>AQI: ${p.aqi}<br>${p.risk}
-      );
-    });
-  }
-
-  loadHeatmap();
-</script>
 
 </body>
 </html>
+

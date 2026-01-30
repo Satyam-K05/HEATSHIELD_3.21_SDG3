@@ -1,0 +1,13 @@
+body {
+  font-family: Arial;
+  padding: 10px;
+}
+
+#map {
+  height: 400px;
+  margin: 20px 0;
+}
+
+canvas {
+  max-width: 600px;
+}
