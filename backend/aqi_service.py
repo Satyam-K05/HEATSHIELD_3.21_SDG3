@@ -1,54 +1,41 @@
 import requests
 
-OPENAQ_URL = "https://api.openaq.org/v2/latest"
+def fetch_aqi_data(lat, lon):
+    try:
+        url = "https://api.openaq.org/v2/latest"
+        params = {
+            "coordinates": f"{lat},{lon}",
+            "radius": 5000,
+            "limit": 1
+        }
 
-def safe_get(value):
-    return value if value is not None else "N/A"
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
 
-def calculate_risk(aqi):
-    if aqi == "N/A":
-        return "Unknown"
-    if aqi <= 50:
-        return "Low"
-    elif aqi <= 150:
-        return "Moderate"
-    else:
-        return "High"
+        data = response.json()
+        pollutants = {}
 
-def fetch_aqi_data(city, lat, lon):
-    params = {
-        "coordinates": f"{lat},{lon}",
-        "radius": 10000,
-        "limit": 1
-    }
+        results = data.get("results", [])
+        if not results:
+            return {}
 
-    response = requests.get(OPENAQ_URL, params=params, timeout=10)
-    data = response.json()
+        measurements = results[0].get("measurements", [])
 
-    if not data.get("results"):
-        return None
+        for m in measurements:
+            param = m.get("parameter")
+            value = m.get("value")
+            if param and value is not None:
+                pollutants[param] = value
 
-    measurements = data["results"][0]["measurements"]
+        return {
+            "aqi": pollutants.get("pm25", "N/A"),
+            "pm25": pollutants.get("pm25", "N/A"),
+            "pm10": pollutants.get("pm10", "N/A"),
+            "no2": pollutants.get("no2", "N/A"),
+            "so2": pollutants.get("so2", "N/A"),
+            "co": pollutants.get("co", "N/A")
+        }
 
-    pollutants = {
-        "pm25": "N/A",
-        "pm10": "N/A",
-        "no2": "N/A",
-        "so2": "N/A",
-        "co": "N/A"
-    }
-
-    for m in measurements:
-        param = m["parameter"]
-        if param in pollutants:
-            pollutants[param] = round(m["value"], 2)
-
-    # Approx AQI logic (simple & acceptable for hackathon)
-    base_aqi = pollutants["pm25"]
-    aqi = base_aqi if isinstance(base_aqi, (int, float)) else "N/A"
-
-    return {
-        "aqi": aqi,
-        "risk": calculate_risk(aqi),
-        **pollutants
-    }
+    except Exception as e:
+        print("AQI fetch error:", e)
+        return {}

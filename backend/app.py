@@ -39,7 +39,34 @@ def get_all_cities():
 
 # ----------------------------
 # API: AQI by city
-# ----------------------------
+@app.route("/api/aqi")
+def get_aqi_by_city():
+    city = request.args.get("city")
+    if not city:
+        return jsonify({"error": "City parameter is required"}), 400
+
+    state, city_info = find_city(city)
+    if not city_info:
+        return jsonify({"error": "City not found"}), 404
+
+    aqi_data = fetch_aqi_data(city_info["lat"], city_info["lon"])
+    if not aqi_data:
+        aqi_data = {
+        "aqi": "N/A",
+        "pm25": "N/A",
+        "pm10": "N/A",
+        "no2": "N/A",
+        "so2": "N/A",
+        "co": "N/A"}
+    return jsonify({
+        "city": city_info["city"],
+        "state": state,
+        "lat": city_info["lat"],
+        "lon": city_info["lon"],
+        "source": "OpenAQ",
+        **aqi_data
+    })
+
 @app.route("/api/cities")
 def get_manual_cities():
     manual = [c["city"] for cities in INDIA_CITIES.values() for c in cities]
@@ -51,10 +78,9 @@ def get_manual_cities():
 # ----------------------------
 @app.route("/")
 def home():
-    return {"status": "Backend running"}
+    return {"status": "Backend runnlot"}
 
-if __name__ == "__main__":
-    app.run(debug=True)
+
 @app.route("/api/health-risk")
 def get_health_risk():
     aqi = request.args.get("aqi")
@@ -68,3 +94,5 @@ def get_health_risk():
         aqi = "N/A"
 
     return jsonify(health_explanation(aqi))
+if __name__ == "__main__":
+    app.run(debug=True)
